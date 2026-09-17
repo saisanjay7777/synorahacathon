@@ -11,6 +11,8 @@ import bidRoutes from './routes/bidRoutes.js';
 import sellerRoutes from './routes/sellerRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 
+import { corsOptions } from './config/cors.js';
+
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
@@ -28,22 +30,8 @@ app.use(
 );
 
 // CORS Configuration
-const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman) or matching origin
-      if (!origin || origin === allowedOrigin || origin.startsWith('http://localhost')) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Permissive in dev/staging for easy frontend pairing
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Body Parsers
 app.use(express.json({ limit: '10mb' }));

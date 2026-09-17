@@ -6,10 +6,11 @@ import configureAuctionSocket from './sockets/auctionSocket.js';
 import prisma from './config/prisma.js';
 import logger from './utils/logger.js';
 
+import { isOriginAllowed, allowedOriginsList } from './config/cors.js';
+
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -18,11 +19,10 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      // Allow local and client origins
-      if (!origin || origin === CLIENT_URL || origin.startsWith('http://localhost')) {
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
-        callback(null, true);
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
       }
     },
     methods: ['GET', 'POST'],
@@ -41,7 +41,7 @@ configureAuctionSocket(io);
 server.listen(PORT, () => {
   logger.success(`🚀 BidSphere Backend running on port ${PORT}`);
   logger.info(`📡 Socket.IO server initialized and listening for connections`);
-  logger.info(`🔗 Allowed Client URL: ${CLIENT_URL}`);
+  logger.info(`🔗 Allowed Origins: ${allowedOriginsList.join(', ')}`);
   logger.info(`🩺 Health endpoint: http://localhost:${PORT}/`);
 });
 
